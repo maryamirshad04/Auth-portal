@@ -14,7 +14,7 @@ export default function Login() {
 });
 
       const token = res.data.token;
-      localStorage.setItem('token', token);
+      localStorage.setItem('token', token); //token saved in local storage
       alert('Login successful!');
     } catch (err) {
       alert('Login failed!');

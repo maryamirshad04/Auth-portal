@@ -19,18 +19,24 @@ export default function Home() {
             Signup
           </button>
         </Link>
-        <Link href="/user">
+        <div className="flex gap-4">
+          <Link href="/user">
           <button className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded">
             User List
-          </button>
-          <button className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded">
-            Edit
-          </button>
-          <button className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded">
-            Delete
-          </button>
-        </Link>
-      </div>
+            </button>
+            </Link>
+            <Link href="/edit">
+            <button className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded">
+              Edit
+              </button>
+            </Link>
+            <Link href="/delete">
+              <button className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded">
+                Delete
+                </button>
+                </Link>
+                </div>
+                </div>
     </div>
   );
 }

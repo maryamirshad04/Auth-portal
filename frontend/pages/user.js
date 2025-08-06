@@ -5,37 +5,46 @@ import View from "./Users/List/View";
 import UserFormCreate from "./Users/UserFormCreate";
 import UserFormEdit from "./Users/UserFormEdit";
 
-const user = () => {
-  const [users, setUsers] = useState([]);
+const User = () => {
+  const [users, setUsers] = useState([]); // always an array
   const [selectedUser, setSelectedUser] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const token = localStorage.getItem("token");
-      try {
-        const res = await axios.get("http://localhost:5000/user/list", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUsers(res.data.users || res.data);
-      } catch (err) {
-        console.error("Error fetching users", err);
-        if (err.response?.status === 403 || err.response?.status === 401) {
-          router.push('/login'); 
-        }
+  const fetchUsers = async (page = 1) => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/user/list?page=${page}&limit=10`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setUsers(res.data.users || []); // fallback to empty array
+      setTotalPages(res.data.totalPages || 1);
+      setCurrentPage(res.data.currentPage || 1);
+    } catch (err) {
+      console.error("Error fetching users", err);
+      if (err.response?.status === 403 || err.response?.status === 401) {
+        router.push('/login');
       }
-    };
-    fetchUsers();
-  }, [router]);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers(currentPage);
+  }, [currentPage]);
 
   const handleCreateUser = async (data) => {
     const token = localStorage.getItem("token");
     try {
-      const res = await axios.post("http://localhost:5000/user/signup", data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUsers([...users, { _id: res.data.insertedId, ...data }]);
+      const res = await axios.post(
+        "http://localhost:5000/user/signup",
+        data,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // refresh list from backend so pagination is consistent
+      fetchUsers(currentPage);
       setShowCreateModal(false);
       alert("User created successfully!");
     } catch (err) {
@@ -52,10 +61,7 @@ const user = () => {
         data,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const updatedUsers = users.map((u) =>
-        u._id === selectedUser._id ? { ...u, ...data } : u
-      );
-      setUsers(updatedUsers);
+      fetchUsers(currentPage);
       setSelectedUser(null);
     } catch (err) {
       console.error("Update failed", err);
@@ -65,10 +71,11 @@ const user = () => {
   const deleteUser = async (id) => {
     const token = localStorage.getItem("token");
     try {
-      await axios.delete(`http://localhost:5000/user/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUsers(users.filter((u) => u._id !== id));
+      await axios.delete(
+        `http://localhost:5000/user/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchUsers(currentPage);
     } catch (err) {
       console.error("Delete failed", err);
     }
@@ -118,7 +125,14 @@ const user = () => {
           </div>
         </div>
 
-        <View users={users} onEdit={setSelectedUser} onDelete={deleteUser} />
+        <View
+          users={users}
+          totalPages={totalPages}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+          onEdit={setSelectedUser}
+          onDelete={deleteUser}
+        />
       </div>
       <UserFormEdit
         show={!!selectedUser}
@@ -135,4 +149,4 @@ const user = () => {
   );
 };
 
-export default user;
+export default User;

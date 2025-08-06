@@ -28,8 +28,24 @@ exports.createUser = async (req, res) => {
 
 exports.listUsers = async (req, res) => {
   const users = getUserCollection();
-  const allUsers = await users.find({}).toArray();
-  res.json(allUsers);
+
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+
+  const skip = (page - 1) * limit;
+
+  const data = await users.find({})
+    .skip(skip)
+    .limit(limit)
+    .toArray();
+
+  const totalUsers = await users.countDocuments();
+
+  res.json({
+    users: data,
+    totalPages: Math.ceil(totalUsers / limit),
+    currentPage: page
+  });
 };
 
 exports.getUserById = async (req, res) => {
